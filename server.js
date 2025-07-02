@@ -13,7 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.get("/", (_, res) => {
-  res.send("Your backend is live ✅");
+  res.send("Your backend is liveeee ✅");
 });
 
 app.use("/api/auth", authRoutes);
