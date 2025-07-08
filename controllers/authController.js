@@ -2,6 +2,23 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const otpModal = require("../models/otp.modal");
+const Mongoose = require("mongoose");
+
+const getProfile = async (req, res) => {
+  const userId = new Mongoose.Types.ObjectId(req.user.id);
+  // console.log(userId);
+
+  const user = await User.findOne({ _id: userId }).select("-password");
+  if (!user) {
+    return res.json({
+      message: "user not found",
+    });
+  }
+  return res.status(200).json({
+    message: "user get",
+    user,
+  });
+};
 
 const registerUser = async (req, res) => {
   try {
@@ -29,6 +46,7 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await User.create({
       firstName,
       lastName,
@@ -39,10 +57,13 @@ const registerUser = async (req, res) => {
       termsAccepted,
       is18Confirmed,
     });
+    const withOutPass = user.select("-password");
 
-    res
-      .status(201)
-      .json({ status: true, message: "User registered successfully", user });
+    res.status(201).json({
+      status: true,
+      message: "User registered successfully",
+      user: withOutPass,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -83,7 +104,8 @@ const loginUser = async (req, res) => {
     const { password: _, ...userWithoutPassword } = user.toObject();
 
     return res.status(200).json({
-      message: "Login successful",
+      status: true,
+      message: "Login successfully",
       token,
       user: userWithoutPassword,
     });
@@ -92,4 +114,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+module.exports = { registerUser, loginUser, getProfile };

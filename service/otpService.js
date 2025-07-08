@@ -2,13 +2,18 @@ const axios = require("axios");
 const otpModal = require("../models/otp.modal");
 const userModel = require("../models/userModel");
 
-
-const sendOtpService = async (mobile) => {
+const sendOtpService = async (mobile, forLogin = false) => {
   const existingUser = await userModel.findOne({ mobile });
-  if (existingUser) {
+  if (!forLogin && existingUser) {
     return {
       success: false,
       message: "User already exists with this mobile number.",
+    };
+  }
+  if (forLogin && !existingUser) {
+    return {
+      success: false,
+      message: "User not registered with this mobile number.",
     };
   }
   const generateOtp = () =>
@@ -25,7 +30,7 @@ const sendOtpService = async (mobile) => {
     data: {
       route: "q",
       sender_id: "TXTIND",
-      message: `Your OTP is ${otp} . Please do not share otp to anyone. FinUnique Small Private Limmited.`,
+      message: `Your OTP is 123456. Do not share it. FinUnique Small Private Limited. https://rummy-eight.vercel.app/`,
       language: "english",
       numbers: mobile,
     },

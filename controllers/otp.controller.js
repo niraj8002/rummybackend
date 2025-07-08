@@ -1,12 +1,12 @@
 const { sendOtpService, verifyOtpService } = require("../service/otpService");
 
 const sendOtp = async (req, res) => {
-  const { mobile } = req.body;
+  const { mobile, forLogin } = req.body;
   if (!mobile || !/^[6-9]\d{9}$/.test(mobile)) {
     return res.status(400).json({ message: "Invalid mobile number" });
   }
   try {
-    const result = await sendOtpService(mobile);
+    const result = await sendOtpService(mobile, forLogin);
     res.status(result.success ? 200 : 400).json(result);
   } catch (err) {
     console.error("Send OTP Error:", err);
