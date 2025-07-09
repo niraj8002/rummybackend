@@ -2,22 +2,32 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const otpModal = require("../models/otp.modal");
-const Mongoose = require("mongoose");
 
-const getProfile = async (req, res) => {
-  const userId = new Mongoose.Types.ObjectId(req.user.id);
-  // console.log(userId);
+//get all user  for admin
+// Get all users for admin
+const getAllUser = async (req, res) => {
+  try {
+    const allUsers = await User.find().select("-password"); 
 
-  const user = await User.findOne({ _id: userId }).select("-password");
-  if (!user) {
-    return res.json({
-      message: "user not found",
+    if (!allUsers || allUsers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No users found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "All users fetched successfully",
+      users: allUsers,
+    });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
     });
   }
-  return res.status(200).json({
-    message: "user get",
-    user,
-  });
 };
 
 const registerUser = async (req, res) => {
@@ -38,11 +48,16 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Passwords do not match" });
     }
 
-    const userExists = await User.findOne({ $or: [{ email }, { mobile }] });
-    if (userExists) {
+    const userEmailExists = await User.findOne({ email });
+    if (userEmailExists) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const userNumberExists = await User.findOne({ mobile });
+    if (userNumberExists) {
       return res
         .status(400)
-        .json({ message: "Email or Mobile already registered" });
+        .json({ message: "Mobile number already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -57,14 +72,17 @@ const registerUser = async (req, res) => {
       termsAccepted,
       is18Confirmed,
     });
-    const withOutPass = user.select("-password");
+
+    const userObj = user.toObject();
+    delete userObj.password;
 
     res.status(201).json({
       status: true,
       message: "User registered successfully",
-      user: withOutPass,
+      user: userObj,
     });
   } catch (error) {
+    console.error("Register Error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -114,4 +132,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getProfile };
+module.exports = { registerUser, loginUser, getAllUser };
