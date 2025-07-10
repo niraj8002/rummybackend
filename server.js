@@ -18,7 +18,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.get("/", (_, res) => {
-  res.send("Your backend is liveeee ✅");
+  res.send("Your backend is liveeeeeeeehhhhhhh ✅");
 });
 
 app.use("/api/auth", authRoutes);
